@@ -1,28 +1,70 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Component, Fragment} from 'react';
+import axios from 'axios'
+import Results from './components/Results';
 
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
-  }
+    constructor() {
+        super();
+        this.state = {
+            gifs: [],
+            searchTerms: 'cats',
+            loading: true,
+        }
+    }
+
+    getTrending = async () => {
+
+        try {
+            const response = await axios.get('http://api.giphy.com/v1/gifs/trending?api_key=6lsxo45kmFDZTmLUfVi37XyaF3EyNxzq');
+            const {data} = await response.data;
+            this.setState({
+                gifs: data,
+                loading: false,
+            })
+        }
+        catch (err) {
+            console.log(err);
+
+        }
+    };
+
+    performSearch = async (query = 'react') => {
+        let search = document.getElementById('search').value;
+        try {
+            const response = await axios.get(`http://api.giphy.com/v1/gifs/search?q=${search}&limit=25&api_key=6lsxo45kmFDZTmLUfVi37XyaF3EyNxzq`);
+            const {data} = await response.data;
+            this.setState({
+                gifs: data,
+                loading: false,
+            })
+        }
+        catch (err) {
+            console.log(err);
+
+        }
+    };
+
+    componentDidMount() {
+        // this.performSearch(this.state.searchTerms);
+        this.getTrending();
+    };
+
+    render() {
+        console.log(this.state.gifs);
+        return (
+            <Fragment>
+                <div>
+                    <input onKeyUp={this.performSearch} id='search' type='text'/>
+                </div>
+                {
+                    (this.state.loading) ?
+                        <p>&hellip;Loading&hellip;</p>
+                        : <Results data={this.state.gifs}></Results>
+                }
+            </Fragment>
+
+        );
+    }
 }
 
 export default App;
